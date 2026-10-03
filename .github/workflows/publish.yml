@@ -41,14 +41,17 @@ jobs:
 
       # GitHub Packages only accepts package names scoped to the repository owner
       # (lowercase), and links the package to the repository given here.
-      - name: Set package name, repository and version
+      - name: Check package scope, set repository and version
         env:
           OWNER: ${{ github.repository_owner }}
           REPOSITORY: ${{ github.repository }}
           TAG: ${{ github.event.release.tag_name }}
         run: |
-          name="$(node -p "require('./package.json').name.replace(/^@[^/]+\//, '')")"
-          npm pkg set "name=@${OWNER,,}/${name}"
+          name="$(node -p "require('./package.json').name")"
+          if [[ "$name" != "@${OWNER,,}/"* ]]; then
+            echo "::error::Package name $name must be scoped to the repository owner: @${OWNER,,}/..."
+            exit 1
+          fi
           npm pkg set "repository.type=git" "repository.url=git+https://github.com/${REPOSITORY}.git"
           npm version "${TAG#v}" --no-git-tag-version --allow-same-version
           echo "Publishing $(node -p "require('./package.json').name")@$(node -p "require('./package.json').version")"

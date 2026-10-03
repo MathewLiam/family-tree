@@ -1,4 +1,4 @@
-# family-tree
+# @mathewliam/familytree
 
 An interactive family tree React component library, built from scratch (no graphing library) with webpack and Babel.
 
@@ -25,8 +25,8 @@ An interactive family tree React component library, built from scratch (no graph
 ## Using the library
 
 ```tsx
-import { PersonNode, type Person } from 'family-tree'
-import 'family-tree/style.css'
+import { PersonNode, type Person } from '@mathewliam/familytree'
+import '@mathewliam/familytree/style.css'
 
 const person: Person = {
   id: '1',
@@ -45,23 +45,23 @@ To theme nodes, set the `--ft-node-*` CSS custom properties on the node or on an
 The package is published to GitHub Packages by `.github/workflows/publish.yml` whenever a GitHub release is published:
 
 1. Create a release with a tag like `v1.2.0`. The tag sets the published version, so `package.json` doesn't need bumping.
-2. The workflow typechecks, lints, builds, and publishes `@<repo-owner>/family-tree@1.2.0`.
+2. The workflow typechecks, lints, builds, and publishes `@mathewliam/familytree@1.2.0`. The repository must be owned by the `MathewLiam` GitHub account, because GitHub Packages only accepts a scope matching the owner.
 
 Releases marked as pre-release (e.g. `v1.3.0-beta.1`) are published under the `next` dist-tag.
 
 ## Installing from GitHub Packages
 
-In the consuming project, add an `.npmrc` (replace `<owner>` with the GitHub user or org, in lowercase):
+In the consuming project, add an `.npmrc`:
 
 ```
-@<owner>:registry=https://npm.pkg.github.com
+@mathewliam:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
 `GITHUB_TOKEN` must be a token with `read:packages` (a classic personal access token locally; in GitHub Actions, the workflow's `GITHUB_TOKEN` with `packages: read`). Then:
 
 ```sh
-npm install @<owner>/family-tree
+npm install @mathewliam/familytree
 ```
 
 ## Adding a component
