@@ -1,0 +1,60 @@
+name: Publish package
+
+# Publishes to GitHub Packages (npm.pkg.github.com) when a GitHub release is published.
+# The release tag sets the version: tag "v1.2.0" publishes 1.2.0. Pre-releases are
+# published under the "next" dist-tag, so `npm install` doesn't pick them up by default.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://npm.pkg.github.com
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      # GitHub Packages only accepts package names scoped to the repository owner
+      # (lowercase), and links the package to the repository given here.
+      - name: Set package name, repository and version
+        env:
+          OWNER: ${{ github.repository_owner }}
+          REPOSITORY: ${{ github.repository }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          name="$(node -p "require('./package.json').name.replace(/^@[^/]+\//, '')")"
+          npm pkg set "name=@${OWNER,,}/${name}"
+          npm pkg set "repository.type=git" "repository.url=git+https://github.com/${REPOSITORY}.git"
+          npm version "${TAG#v}" --no-git-tag-version --allow-same-version
+          echo "Publishing $(node -p "require('./package.json').name")@$(node -p "require('./package.json').version")"
+
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DIST_TAG: ${{ github.event.release.prerelease && 'next' || 'latest' }}
+        run: npm publish --tag "$DIST_TAG"

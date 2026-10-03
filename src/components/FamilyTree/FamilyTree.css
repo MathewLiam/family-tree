@@ -1,0 +1,113 @@
+/*
+ * Theme by setting the public --ft-tree-* / --ft-connector-* custom properties
+ * on .ft-family-tree or any ancestor. Nodes are themed with --ft-node-* (see
+ * PersonNode.css), which can also be set here to style every node in the tree.
+ */
+.ft-family-tree {
+  --_height: var(--ft-tree-height, 36rem);
+  --_bg: var(--ft-tree-bg, #f8f8f9);
+  --_border: var(--ft-tree-border, #e4e4e7);
+  --_radius: var(--ft-tree-radius, 0.5rem);
+  --_connector: var(--ft-connector-color, #a1a1aa);
+  --_connector-width: var(--ft-connector-width, 1.5px);
+  --_partner-connector: var(--ft-partner-connector-color, var(--_connector));
+  --_control-bg: var(--ft-control-bg, #ffffff);
+  --_control-text: var(--ft-control-text, #18181b);
+  --_accent: var(--ft-node-accent, #2563eb);
+
+  position: relative;
+  box-sizing: border-box;
+  height: var(--_height);
+  overflow: hidden;
+  border: 1px solid var(--_border);
+  border-radius: var(--_radius);
+  background: var(--_bg);
+}
+
+.ft-family-tree__viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+
+  &:focus-visible {
+    outline: 2px solid var(--_accent);
+    outline-offset: -2px;
+  }
+}
+
+.ft-family-tree--panning .ft-family-tree__viewport,
+.ft-family-tree--panning .ft-person-node {
+  cursor: grabbing;
+}
+
+.ft-family-tree__canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.ft-family-tree__connectors {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ft-family-tree__connector {
+  fill: none;
+  stroke: var(--_connector);
+  stroke-width: var(--_connector-width);
+  stroke-linejoin: round;
+}
+
+.ft-family-tree__connector--partner {
+  stroke: var(--_partner-connector);
+}
+
+.ft-family-tree__node {
+  position: absolute;
+
+  /* The layout gives every node a fixed size, so the default node fills it. */
+  & > .ft-person-node {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+.ft-family-tree__controls {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ft-family-tree__control {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--_border);
+  border-radius: 0.375rem;
+  background: var(--_control-bg);
+  color: var(--_control-text);
+  font: 1rem/1 system-ui, sans-serif;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--_accent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--_accent);
+    outline-offset: 2px;
+  }
+}
