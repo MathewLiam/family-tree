@@ -25,6 +25,8 @@ export interface PanZoomOptions {
   maxZoom: number
   /** Space kept around the content when fitting it to the viewport. */
   fitPadding: number
+  /** The scale to start at, or `'fit'` to fit the content to the viewport. */
+  initialZoom: number | 'fit'
 }
 
 /** Pointer movement, in px, before a press becomes a drag (so clicks still work). */
@@ -39,7 +41,7 @@ const BUTTON_ZOOM_STEP = 1.25
  */
 export function usePanZoom(
   viewportRef: RefObject<HTMLElement | null>,
-  { contentWidth, contentHeight, minZoom, maxZoom, fitPadding }: PanZoomOptions,
+  { contentWidth, contentHeight, minZoom, maxZoom, fitPadding, initialZoom }: PanZoomOptions,
 ) {
   const [transform, setTransform] = useState<Transform>({ x: 0, y: 0, k: 1 })
   const [isPanning, setIsPanning] = useState(false)
@@ -77,8 +79,26 @@ export function usePanZoom(
     setTransform({ k, x: (vw - contentWidth * k) / 2, y: (vh - contentHeight * k) / 2 })
   }, [viewportRef, contentWidth, contentHeight, fitPadding, clampZoom])
 
-  // Fit whenever the content changes size (including the first render).
-  useLayoutEffect(fit, [fit])
+  /**
+   * Applies `initialZoom`. A fixed scale centres the content horizontally, and
+   * vertically if it fits; otherwise its top edge is kept in view.
+   */
+  const reset = useCallback(() => {
+    if (initialZoom === 'fit') return fit()
+    const el = viewportRef.current
+    if (!el || el.clientWidth === 0) return
+    const { clientWidth: vw, clientHeight: vh } = el
+    const k = clampZoom(initialZoom)
+    const height = contentHeight * k
+    setTransform({
+      k,
+      x: (vw - contentWidth * k) / 2,
+      y: height + 2 * fitPadding <= vh ? (vh - height) / 2 : fitPadding,
+    })
+  }, [initialZoom, fit, viewportRef, contentWidth, contentHeight, fitPadding, clampZoom])
+
+  // Reset whenever the content changes size (including the first render).
+  useLayoutEffect(reset, [reset])
 
   // React's onWheel is passive, so preventDefault (to stop the page scrolling) needs a native listener.
   useEffect(() => {

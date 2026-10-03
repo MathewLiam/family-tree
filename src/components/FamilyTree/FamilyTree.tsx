@@ -43,6 +43,12 @@ export interface FamilyTreeProps {
 
   minZoom?: number
   maxZoom?: number
+  /**
+   * The scale to show the tree at when it first renders (and when its size
+   * changes), clamped to `minZoom`–`maxZoom`. `'fit'` (the default) fits the
+   * whole tree in view, without zooming in past 100%.
+   */
+  initialZoom?: number | 'fit'
   /** Shows the zoom in / zoom out / fit buttons. */
   showControls?: boolean
 
@@ -70,6 +76,7 @@ export function FamilyTree({
   formatDate,
   minZoom = 0.1,
   maxZoom = 2,
+  initialZoom = 'fit',
   showControls = true,
   className,
   'aria-label': ariaLabel = 'Family tree',
@@ -106,6 +113,7 @@ export function FamilyTree({
     minZoom,
     maxZoom,
     fitPadding: FIT_PADDING,
+    initialZoom,
   })
 
   // Built separately from the transform, so panning and zooming don't re-render every node.

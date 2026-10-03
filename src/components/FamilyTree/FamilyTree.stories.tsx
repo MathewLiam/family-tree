@@ -59,6 +59,11 @@ export const SubtreeFromRoot: Story = {
   args: { rootId: 'florence' },
 }
 
+/** `initialZoom` starts at a fixed scale instead of fitting the whole tree in view. */
+export const InitialZoom: Story = {
+  args: { initialZoom: 1 },
+}
+
 export const CompactSpacing: Story = {
   args: {
     layout: { nodeWidth: 150, nodeHeight: 100, partnerGap: 16, siblingGap: 12, generationGap: 40 },
