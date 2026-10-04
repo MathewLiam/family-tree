@@ -54,6 +54,14 @@ export const Controlled: Story = {
   },
 }
 
+/** With `focusSelected`, changing `selectedId` from the controls pans the tree to that person. */
+export const FocusSelected: Story = {
+  args: { selectedId: 'george', focusSelected: true, initialZoom: 1 },
+  argTypes: {
+    selectedId: { control: 'select', options: ashworthPeople.map((p) => p.id) },
+  },
+}
+
 /** `rootId` picks whose descendants to show. */
 export const SubtreeFromRoot: Story = {
   args: { rootId: 'florence' },

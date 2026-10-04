@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   layoutFamilyTree,
   type LayoutConnector,
@@ -30,6 +30,11 @@ export interface FamilyTreeProps {
   /** The initially selected person's id, for an uncontrolled tree. */
   defaultSelectedId?: string
   onSelect?: (person: Person) => void
+  /**
+   * Pans to centre the selected person when `selectedId` is changed by the
+   * parent (e.g. from a search), rather than by clicking a node in the tree.
+   */
+  focusSelected?: boolean
 
   /** Replaces the default {@link PersonNode}. Rendered inside a box of the layout's node size. */
   renderNode?: (props: RenderNodeProps) => ReactNode
@@ -70,6 +75,7 @@ export function FamilyTree({
   selectedId: controlledSelectedId,
   defaultSelectedId,
   onSelect,
+  focusSelected = false,
   renderNode,
   layout: layoutOptions,
   locale,
@@ -98,8 +104,12 @@ export function FamilyTree({
   const isControlled = controlledSelectedId !== undefined
   const selectedId = isControlled ? controlledSelectedId : uncontrolledSelectedId
 
+  // A new object per click in the tree, so focusSelected can tell clicks from outside changes.
+  const [lastClick, setLastClick] = useState<{ id: string }>()
+
   const select = useCallback(
     (person: Person) => {
+      setLastClick({ id: person.id })
       if (!isControlled) setUncontrolledSelectedId(person.id)
       onSelect?.(person)
     },
@@ -107,7 +117,7 @@ export function FamilyTree({
   )
 
   const viewportRef = useRef<HTMLDivElement>(null)
-  const { transform, isPanning, zoomIn, zoomOut, fit, viewportProps } = usePanZoom(viewportRef, {
+  const { transform, isPanning, zoomIn, zoomOut, fit, centerOn, viewportProps } = usePanZoom(viewportRef, {
     contentWidth: layout.width,
     contentHeight: layout.height,
     minZoom,
@@ -115,6 +125,19 @@ export function FamilyTree({
     fitPadding: FIT_PADDING,
     initialZoom,
   })
+
+  // Skips the first render, so initialZoom still decides where the tree starts.
+  const previousSelectedId = useRef(selectedId)
+  const handledClick = useRef(lastClick)
+  useEffect(() => {
+    const clicked = lastClick !== handledClick.current
+    handledClick.current = lastClick
+    if (selectedId === previousSelectedId.current) return
+    previousSelectedId.current = selectedId
+    if (!focusSelected || clicked) return
+    const node = layout.nodes.find((n) => n.person.id === selectedId)
+    if (node) centerOn(node.x + node.width / 2, node.y + node.height / 2)
+  }, [focusSelected, selectedId, lastClick, layout, centerOn])
 
   // Built separately from the transform, so panning and zooming don't re-render every node.
   const content = useMemo(

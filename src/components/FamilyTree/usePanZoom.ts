@@ -79,6 +79,16 @@ export function usePanZoom(
     setTransform({ k, x: (vw - contentWidth * k) / 2, y: (vh - contentHeight * k) / 2 })
   }, [viewportRef, contentWidth, contentHeight, fitPadding, clampZoom])
 
+  /** Pans, keeping the current scale, so the content point (cx, cy) is centred in the viewport. */
+  const centerOn = useCallback(
+    (cx: number, cy: number) => {
+      const el = viewportRef.current
+      if (!el || el.clientWidth === 0) return
+      setTransform((t) => ({ ...t, x: el.clientWidth / 2 - cx * t.k, y: el.clientHeight / 2 - cy * t.k }))
+    },
+    [viewportRef],
+  )
+
   /**
    * Applies `initialZoom`. A fixed scale centres the content horizontally, and
    * vertically if it fits; otherwise its top edge is kept in view.
@@ -182,6 +192,7 @@ export function usePanZoom(
     zoomIn: () => zoomAt(BUTTON_ZOOM_STEP),
     zoomOut: () => zoomAt(1 / BUTTON_ZOOM_STEP),
     fit,
+    centerOn,
     viewportProps: {
       onPointerDown,
       onPointerMove,
